@@ -16,6 +16,9 @@ p, h1, h2, h3, h4, h5, h6 {
 p {
     text-wrap: pretty;
 }
+em {
+    font-weight: 700;
+}
 h1, h2, h3, h4, h5, h6 {
     text-wrap: balance;
 }
@@ -23,5 +26,6 @@ input, button, textarea, select {
     font: inherit;
 }
 .wrapper {
-    margin: 0 auto;
+    margin: 1rem auto;
+    max-width: 1000px;
 }
