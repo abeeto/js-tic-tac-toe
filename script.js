@@ -23,7 +23,7 @@ console.log("hello");
 */
 
 
-// USE MODULE PATTERN - little to no global code
+// USE MODULE PATTERN
 /*
     GAMEBOARD module: IIFE fn factory pattern
 
@@ -43,7 +43,8 @@ console.log("hello");
     return {board, allWinnableArrays}
 */
 
-/* GAME CONTROLLER (gameBoardObj, [playerObjs]): IIFE module pattern
+// MODULE PATTERN
+/* GAME CONTROLLER (gameBoardObj, [playerObjs]): IIFE fn factory pattern
     winner = null
     while winner == null || isDraw
         currentPlayer = currentPlayer === player1 ? player2 : player1;
