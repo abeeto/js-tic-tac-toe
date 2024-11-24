@@ -7,6 +7,16 @@ console.log("hello");
     fn getName
     fn getMarker
 */
+function Player(name, marker) {
+    let myName = name;
+    let myMarker = marker;
+    
+    const getName = () => myName;
+    const getMarker = () => myMarker;
+
+    return {getName, getMarker}
+}
+
 
 
 /*
