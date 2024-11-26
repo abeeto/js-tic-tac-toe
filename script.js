@@ -50,7 +50,23 @@ function Cell(rowIndex, columnIndex) {
         // find any array that has cells assigned to more than one owner, if so, remove that array from allWinnableArrays
     return {board, allWinnableArrays}
 */
+const GameBoard = function() {
+    const columns = 3;
+    const rows = 3;
 
+    const allBoardCells = function() {
+        const board = [];
+        for (let y=0; y<columns; y++){
+            for(let x=0; x<rows; x++) {
+                board.push(Cell(y, x));
+            }
+        }
+        return board;
+    }();
+    const getBoardCells = () => allBoardCells;
+
+    return {getBoardCells};
+}
 // MODULE PATTERN
 /* GAME CONTROLLER (gameBoardObj, [playerObjs]): IIFE fn factory pattern
     winner = null
