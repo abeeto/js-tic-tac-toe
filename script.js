@@ -1,12 +1,4 @@
 console.log("hello");
-/* 
-    PLAYER OBJECT (name, marker): function factory pattern
-    var name: name;
-    var marker: marker;
-
-    fn getName
-    fn getMarker
-*/
 function Player(name, marker) {
     let myName = name;
     let myMarker = marker;
@@ -17,20 +9,26 @@ function Player(name, marker) {
     return {getName, getMarker}
 }
 
+function Cell(rowIndex, columnIndex) {
+    let position = [rowIndex, columnIndex];
+    let owner;
+    let marker;
 
+    const getPosition = () => position;
+    const getOwner = () => owner;
+    const getMarker = () => marker;
+    
+    const assign = (playerObj) => {
+        if (getOwner() === undefined) {
+            owner = playerObj.getName();
+            marker = playerObj.getMarker();
+        }else {
+            console.log(`Cell is already assigned by ${getOwner()}`);
+        }
+    }
 
-/*
-    CELL OBJECT(rowIndex, colIndex): function factory pattern
-
-    var position : [rowIndex, colIndex]
-    var assignedTo : null
-    var marker : null;
-
-    fn getCellMarker() => return marker 
-    fn getCellOwner() => return assignedTo
-    fn assignCell(playerObj) => ONLY IF getCellOwner returns null THEN assignedTo = playerObj, marker = playerObj.getMarker();
-    fn returnCellPosition() => position
-*/
+    return {getPosition, getOwner, getMarker, assign}
+}
 
 
 // USE MODULE PATTERN
@@ -63,3 +61,16 @@ function Player(name, marker) {
         isDraw = gameBoardObj.checkDraw()
         gameBoardObj.pruneAllArrays()
 */
+
+function GameController (gameBoardObj, playerObjs){
+    let winner;
+    let isDraw = false;
+    let currentPlayer = playerObjs[1];
+
+    const playRound = () => null; // TODO: complete this later
+
+    while (winner === null && isDraw === false) {
+        currentPlayer = currentPlayer === playerObjs[0] ? playerObjs[1] : playerObjs[0];
+        playRound(currentPlayer);
+    }
+}
