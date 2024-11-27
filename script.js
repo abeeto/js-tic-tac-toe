@@ -9,12 +9,15 @@ function Player(name, marker) {
     return {getName, getMarker}
 }
 
-function Cell(rowIndex, columnIndex) {
-    let position = [rowIndex, columnIndex];
+function Cell([...position]) {
+    let rowIndex = position[0];
+    let columnIndex = position[1];
     let owner;
     let marker;
 
     const getPosition = () => position;
+    const getRowIndex = () => rowIndex;
+    const getColIndex = () => columnIndex;
     const getOwner = () => owner;
     const getMarker = () => marker;
     
@@ -27,7 +30,7 @@ function Cell(rowIndex, columnIndex) {
         }
     }
 
-    return {getPosition, getOwner, getMarker, assign}
+    return {getPosition, getRowIndex, getColIndex, getOwner, getMarker, assign}
 }
 
 
@@ -56,16 +59,32 @@ const GameBoard = function() {
 
     const allBoardCells = function() {
         const board = [];
-        for (let y=0; y<columns; y++){
-            for(let x=0; x<rows; x++) {
-                board.push(Cell(y, x));
+        for (let x=0; x<rows; x++){
+            for(let y=0; y<columns; y++) {
+                board.push(Cell([x, y]));
             }
         }
         return board;
     }();
-    const getBoardCells = () => allBoardCells;
+    
+    const getRow = (rowIndex) => allBoardCells.filter(cell => cell.getRowIndex() === rowIndex);
+    const getCol = (colIndex) => allBoardCells.filter(cell => cell.getColIndex() === colIndex);
+    const getDiagOne = () => allBoardCells.filter(cell => cell.getPosition().every((val, index, arr) => val === arr[0]));
+    const getDiagTwo = () => {
+            const diagCellPos = function() {
+                let arr = [];
+                let y = columns -1;
+                for (let x=0; x<rows; x++) {
+                    arr.push([x,y--])
+                }
+                return arr;
+            }();
+            return diagCellPos.map(getCell);
+        };
+    const getCell = ([rowIndex, colIndex]) => allBoardCells.filter(cell => cell.getRowIndex() === rowIndex && cell.getColIndex() === colIndex)[0]
+    const getAllCells = () => allBoardCells;
 
-    return {getBoardCells};
+    return {getAllCells, getCell, getRow, getCol, getDiagOne, getDiagTwo};
 }
 // MODULE PATTERN
 /* GAME CONTROLLER (gameBoardObj, [playerObjs]): IIFE fn factory pattern
