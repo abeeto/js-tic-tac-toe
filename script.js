@@ -14,6 +14,9 @@ function Cell([...position]) {
     let marker;
 
     const getPosition = () => position;
+    const getRowIndex = () => position[0];
+    const getColIndex = () => position[1];
+
     const getOwner = () => owner;
     const getMarker = () => marker;
     
@@ -26,7 +29,7 @@ function Cell([...position]) {
         }
     }
 
-    return {getPosition, getOwner, getMarker, assign}
+    return {getPosition, getOwner, getRowIndex, getColIndex, getMarker, assign}
 }
 
 const GameBoard = function() {
@@ -61,7 +64,7 @@ const GameBoard = function() {
             return diagCellPos.map(getCell);
     };
 
-    const allArraysToWin = function(){
+    const allBoardArrays = function(){
         const arr = [];
         for(let x=0; x<rows; x++){
             arr.push(getRow(x));
@@ -74,13 +77,22 @@ const GameBoard = function() {
         return arr;
     }();
 
-    const getArraysToWin = () => allArraysToWin;
+    const getAllBoardArrays = () => allBoardArrays;
+    return {getAllCells, getCell, getAllBoardArrays};
+}();
 
-    return {getAllCells, getCell, getArraysToWin};
-}
+function GameController(playerObjs) {
+    let allBoardCells = GameBoard.getAllCells();
+    let winnableArrays = GameBoard.getAllBoardArrays();
 
-function GameController(gameBoardObj, playerObjs) {
-    let winnableArrays = gameBoardObj.getArraysToWin();
+    const boardWrapper = document.querySelector(".board-wrapper");     
+    for (let cell of allBoardCells) {
+        const newCellDiv = document.createElement("div");
+        newCellDiv.classList.add("board-tile");
+        newCellDiv.innerText = cell.getMarker();
+        boardWrapper.appendChild(newCellDiv);
+    }
+
     const getWinner = () => {
         for (let winArr of winnableArrays) {
             if (winArr.every((val, index, arr) => val?.getOwner() === arr[0]?.getOwner())) {
@@ -89,7 +101,7 @@ function GameController(gameBoardObj, playerObjs) {
         }
         return null;
     }
-    const checkForTwoOwners = (arr) => {
+    const checkLessThanTwoOwners = (arr) => {
         let owners = new Set();
         arr.forEach(cell => {
             if (cell?.getOwner()) {
@@ -99,10 +111,11 @@ function GameController(gameBoardObj, playerObjs) {
         return owners.size < 2;
     }
     const pruneWinnableArrays = () => { 
-        winnableArrays = winnableArrays.filter(checkForTwoOwners);
+        winnableArrays = winnableArrays.filter(checkLessThanTwoOwners);
         console.log(winnableArrays);
     };
     const checkDraw = () => winnableArrays.length === 0;    
+
 
     return {pruneWinnableArrays, getWinner, checkDraw};
 }
