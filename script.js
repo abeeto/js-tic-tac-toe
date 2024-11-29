@@ -10,14 +10,10 @@ function Player(name, marker) {
 }
 
 function Cell([...position]) {
-    let rowIndex = position[0];
-    let columnIndex = position[1];
     let owner;
     let marker;
 
     const getPosition = () => position;
-    const getRowIndex = () => rowIndex;
-    const getColIndex = () => columnIndex;
     const getOwner = () => owner;
     const getMarker = () => marker;
     
@@ -30,21 +26,9 @@ function Cell([...position]) {
         }
     }
 
-    return {getPosition, getRowIndex, getColIndex, getOwner, getMarker, assign}
+    return {getPosition, getOwner, getMarker, assign}
 }
 
-
-// USE MODULE PATTERN
-/*
-    GAMEBOARD module: IIFE fn factory pattern
-
-    private var rows: 3,
-    private var columns: 3
-
-    private var board: 2d array [3][3] => populate with cell objects
-    
-    allWinnableArrays = array[row1, row2, row3, col1, col2, col3, diag1, diag2] 
-*/
 const GameBoard = function() {
     const columns = 3;
     const rows = 3;
