@@ -44,14 +44,6 @@ function Cell([...position]) {
     private var board: 2d array [3][3] => populate with cell objects
     
     allWinnableArrays = array[row1, row2, row3, col1, col2, col3, diag1, diag2] 
-    fn getWinner checks for win and return winner
-        // iterate thru allWinnableArrays see if any one array is filled with same owner
-        // if so, game is won return player who wins else return nothing
-    fn checkDraw
-        // else if all arrays have two unique owners then it's a draw, return true else false
-    fn pruneAllArrays
-        // find any array that has cells assigned to more than one owner, if so, remove that array from allWinnableArrays
-    return {board, allWinnableArrays}
 */
 const GameBoard = function() {
     const columns = 3;
@@ -66,10 +58,13 @@ const GameBoard = function() {
         }
         return board;
     }();
-    
+    const getAllCells = () => allBoardCells;
+    const getCell = ([rowIndex, colIndex]) => allBoardCells.filter(cell => cell.getRowIndex() === rowIndex && cell.getColIndex() === colIndex)[0]
+
     const getRow = (rowIndex) => allBoardCells.filter(cell => cell.getRowIndex() === rowIndex);
     const getCol = (colIndex) => allBoardCells.filter(cell => cell.getColIndex() === colIndex);
     const getDiagOne = () => allBoardCells.filter(cell => cell.getPosition().every((val, index, arr) => val === arr[0]));
+
     const getDiagTwo = () => {
             const diagCellPos = function() {
                 let arr = [];
@@ -80,32 +75,50 @@ const GameBoard = function() {
                 return arr;
             }();
             return diagCellPos.map(getCell);
-        };
-    const getCell = ([rowIndex, colIndex]) => allBoardCells.filter(cell => cell.getRowIndex() === rowIndex && cell.getColIndex() === colIndex)[0]
-    const getAllCells = () => allBoardCells;
+    };
 
-    return {getAllCells, getCell, getRow, getCol, getDiagOne, getDiagTwo};
+    const allArraysToWin = function(){
+        const arr = [];
+        for(let x=0; x<rows; x++){
+            arr.push(getRow(x));
+        }
+        for(let y=0; y<columns; y++){
+            arr.push(getCol(y));
+        }
+        arr.push(getDiagOne());
+        arr.push(getDiagTwo());
+        return arr;
+    }();
+
+    const getArraysToWin = () => allArraysToWin;
+
+    return {getAllCells, getCell, getArraysToWin};
 }
-// MODULE PATTERN
-/* GAME CONTROLLER (gameBoardObj, [playerObjs]): IIFE fn factory pattern
-    winner = null
-    while winner == null || isDraw
-        currentPlayer = currentPlayer === player1 ? player2 : player1;
-        playRound(currentPlayer)
-        winner = gameBoardObj.getWinner()
-        isDraw = gameBoardObj.checkDraw()
-        gameBoardObj.pruneAllArrays()
-*/
 
-function GameController (gameBoardObj, playerObjs){
-    let winner;
-    let isDraw = false;
-    let currentPlayer = playerObjs[1];
-
-    const playRound = () => null; // TODO: complete this later
-
-    while (winner === null && isDraw === false) {
-        currentPlayer = currentPlayer === playerObjs[0] ? playerObjs[1] : playerObjs[0];
-        playRound(currentPlayer);
+function GameController(gameBoardObj, playerObjs) {
+    let winnableArrays = gameBoardObj.getArraysToWin();
+    const getWinner = () => {
+        for (let winArr of winnableArrays) {
+            if (winArr.every((val, index, arr) => val?.getOwner() === arr[0]?.getOwner())) {
+                return winArr[0].getOwner();
+            }
+        }
+        return null;
     }
+    const checkForTwoOwners = (arr) => {
+        let owners = new Set();
+        arr.forEach(cell => {
+            if (cell?.getOwner()) {
+                owners.add(cell.getOwner());
+            }
+        })
+        return owners.size < 2;
+    }
+    const pruneWinnableArrays = () => { 
+        winnableArrays = winnableArrays.filter(checkForTwoOwners);
+        console.log(winnableArrays);
+    };
+    const checkDraw = () => winnableArrays.length === 0;    
+
+    return {pruneWinnableArrays, getWinner, checkDraw};
 }
