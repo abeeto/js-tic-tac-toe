@@ -1,4 +1,6 @@
 console.log("hello");
+const PlayerOne = Player("Abhinav", "X");
+
 function Player(name, marker) {
     let myName = name;
     let myMarker = marker;
@@ -81,17 +83,49 @@ const GameBoard = function() {
     return {getAllCells, getCell, getAllBoardArrays};
 }();
 
-function GameController(playerObjs) {
+function GameController() {
     let allBoardCells = GameBoard.getAllCells();
     let winnableArrays = GameBoard.getAllBoardArrays();
 
-    const boardWrapper = document.querySelector(".board-wrapper");     
-    for (let cell of allBoardCells) {
+    const boardWrapper = document.querySelector(".board-wrapper");
+    const players = [Player("Abhinav", "X"), Player("Sajeed", "O")];
+    let activePlayer = players[0];
+
+    const changeActivePlayer = () => { activePlayer = activePlayer === players[0]  ? players[1] : players[0] };
+
+    // fn creates an interface which creates players
+    // delete interface on submit
+
+    // fn to "start" the game i.e build out the grid
+
+    // keep looping between till draw/win is returned
+    // after the user assigns (clicks a square)
+    // prune the arrays,
+    // check for a win,
+    // check for a draw
+
+    // if win, then disable the grid and
+    allBoardCells.forEach( cell => {
         const newCellDiv = document.createElement("div");
         newCellDiv.classList.add("board-tile");
-        newCellDiv.innerText = cell.getMarker();
-        boardWrapper.appendChild(newCellDiv);
-    }
+        newCellDiv.innerText = cell.getMarker() ?? "";
+        newCellDiv.addEventListener("click", (e) => { 
+            cell.assign(activePlayer);
+            e.target.innerText = cell.getMarker();
+            pruneWinnableArrays();
+            const winner = getWinner();
+            const isDraw = checkDraw();
+            if (winner === undefined && !isDraw){
+                changeActivePlayer();
+            }
+            else if (winner !== undefined) {
+                alert(winner);
+            }else if (isDraw) {
+                alert("DRAW!");
+            }
+        });
+        boardWrapper.appendChild(newCellDiv); 
+    }) 
 
     const getWinner = () => {
         for (let winArr of winnableArrays) {
@@ -99,7 +133,7 @@ function GameController(playerObjs) {
                 return winArr[0].getOwner();
             }
         }
-        return null;
+        return undefined;
     }
     const checkLessThanTwoOwners = (arr) => {
         let owners = new Set();
