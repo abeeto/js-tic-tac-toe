@@ -1,5 +1,4 @@
 console.log("hello");
-const PlayerOne = Player("Abhinav", "X");
 
 function Player(name, marker) {
     let myName = name;
@@ -92,41 +91,56 @@ function GameController() {
     let activePlayer = players[0];
 
     const changeActivePlayer = () => { activePlayer = activePlayer === players[0]  ? players[1] : players[0] };
+    const disableGrid = () => {
+        const allTiles = document.querySelectorAll(".board-tile");
+        console.log(allTiles);
+        allTiles.forEach(tile => tile.disabled = true);
+    }
 
-    // fn creates an interface which creates players
-    // delete interface on submit
-
-    // fn to "start" the game i.e build out the grid
-
-    // keep looping between till draw/win is returned
-    // after the user assigns (clicks a square)
-    // prune the arrays,
-    // check for a win,
-    // check for a draw
-
-    // if win, then disable the grid and
+    const handleOutcome = () => {
+        pruneWinnableArrays();
+        const winner = getWinner();
+        const isDraw = checkDraw();
+        if (winner === undefined && !isDraw){
+            changeActivePlayer();
+        }
+        else if (winner !== undefined) {
+            alert(winner);
+            disableGrid();
+        }else if (isDraw) {
+            alert("DRAW!");
+            disableGrid();
+        }
+    }
     allBoardCells.forEach( cell => {
         const newCellDiv = document.createElement("div");
         newCellDiv.classList.add("board-tile");
         newCellDiv.innerText = cell.getMarker() ?? "";
         newCellDiv.addEventListener("click", (e) => { 
-            cell.assign(activePlayer);
-            e.target.innerText = cell.getMarker();
-            pruneWinnableArrays();
-            const winner = getWinner();
-            const isDraw = checkDraw();
-            if (winner === undefined && !isDraw){
-                changeActivePlayer();
-            }
-            else if (winner !== undefined) {
-                alert(winner);
-            }else if (isDraw) {
-                alert("DRAW!");
+            if (!e.target.disabled){
+                cell.assign(activePlayer);
+                e.target.innerText = cell.getMarker();
+                handleOutcome();
             }
         });
         boardWrapper.appendChild(newCellDiv); 
     }) 
 
+    const pruneWinnableArrays = () => { 
+        const checkLessThanTwoOwners = (arr) => {
+            let owners = new Set();
+            arr.forEach(cell => {
+                if (cell?.getOwner()) {
+                    owners.add(cell.getOwner());
+                }
+            })
+            return owners.size < 2;
+        }
+
+        winnableArrays = winnableArrays.filter(checkLessThanTwoOwners);
+        console.log(winnableArrays);
+    };
+    
     const getWinner = () => {
         for (let winArr of winnableArrays) {
             if (winArr.every((val, index, arr) => val?.getOwner() === arr[0]?.getOwner())) {
@@ -135,19 +149,7 @@ function GameController() {
         }
         return undefined;
     }
-    const checkLessThanTwoOwners = (arr) => {
-        let owners = new Set();
-        arr.forEach(cell => {
-            if (cell?.getOwner()) {
-                owners.add(cell.getOwner());
-            }
-        })
-        return owners.size < 2;
-    }
-    const pruneWinnableArrays = () => { 
-        winnableArrays = winnableArrays.filter(checkLessThanTwoOwners);
-        console.log(winnableArrays);
-    };
+    
     const checkDraw = () => winnableArrays.length === 0;    
 
 
