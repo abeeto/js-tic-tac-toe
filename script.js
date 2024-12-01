@@ -1,5 +1,3 @@
-console.log("hello");
-
 function Player(name, marker) {
     let myName = name;
     let myMarker = marker;
@@ -82,14 +80,71 @@ const GameBoard = function() {
     return {getAllCells, getCell, getAllBoardArrays};
 }();
 
-function GameController() {
-    let allBoardCells = GameBoard.getAllCells();
+
+function GameInterfaceBuilder({toRemove, shouldStartGame, shouldMakePlayer}) {
+    const makePlayerInterface = () => {
+        const wrapperParentNode = document.querySelector(".wrapper");
+        wrapperParentNode.innerHTML += `
+        <form name="createPlayers" id="createPlayersForm"action="#">
+            <fieldset>
+                <legend>Player One</legend>
+                <label for="playerOneName">Name</label>
+                <input id="playerOneName" name="name" type="text" minlength="1" maxlength="25" required>
+                <label for="playerOneMarker">Marker</label>
+                <input id="playerOneMarker" name="marker" type="text" maxlength="1" required>
+            </fieldset>
+            <fieldset>
+                <legend>Player Two</legend>
+                <label for="playerTwoName">Name</label>
+                <input id="playerTwoName" name="name" type="text" minlength="1" maxlength="25" required>
+                <label for="playerTwoMarker">Marker</label>
+                <input id="playerTwoMarker" name="marker" type="text" maxlength="1" required>
+            </fieldset>
+            <input type="submit" class="player-create-submit" value="Start!">
+        </form>
+        `;
+        const submitFormBtn = document.querySelector(".player-create-submit");
+        submitFormBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            GameInterfaceBuilder({toRemove: wrapperParentNode,shouldStartGame: true,shouldMakePlayer: false});
+        });
+    }
+    const makeGameBoard = () => {
+        const formHeadNode = document.querySelector("#createPlayersForm");
+        const playersFormData = new FormData(formHeadNode);
+        const playerNames = playersFormData.getAll("name");
+        const playerMarker = playersFormData.getAll("marker");
+        const playerOne = Player(playerNames[0], playerMarker[0]);
+        const playerTwo = Player(playerNames[1], playerMarker[1]);
+        
+        const controller = GameController([playerOne, playerTwo]);
+        let allBoardCells = GameBoard.getAllCells();
+
+        const boardWrapper = document.querySelector(".board-wrapper");
+        allBoardCells.forEach( cell => {
+            const newCellDiv = document.createElement("div");
+            newCellDiv.classList.add("board-tile");
+            newCellDiv.innerText = cell.getMarker() ?? "";
+            newCellDiv.addEventListener("click", (e) => { 
+                if (!e.target.disabled){
+                    cell.assign(controller.getActivePlayer());
+                    e.target.innerText = cell.getMarker();
+                    controller.handleOutcome();
+                }
+            });
+            boardWrapper.appendChild(newCellDiv); 
+        })
+    }
+    
+    shouldMakePlayer && makePlayerInterface();
+    shouldStartGame && makeGameBoard();
+
+    toRemove?.remove();
+}
+
+function GameController(players) {
     let winnableArrays = GameBoard.getAllBoardArrays();
-
-    const boardWrapper = document.querySelector(".board-wrapper");
-    const players = [Player("Abhinav", "X"), Player("Sajeed", "O")];
     let activePlayer = players[0];
-
     const changeActivePlayer = () => { activePlayer = activePlayer === players[0]  ? players[1] : players[0] };
     const disableGrid = () => {
         const allTiles = document.querySelectorAll(".board-tile");
@@ -112,19 +167,6 @@ function GameController() {
             disableGrid();
         }
     }
-    allBoardCells.forEach( cell => {
-        const newCellDiv = document.createElement("div");
-        newCellDiv.classList.add("board-tile");
-        newCellDiv.innerText = cell.getMarker() ?? "";
-        newCellDiv.addEventListener("click", (e) => { 
-            if (!e.target.disabled){
-                cell.assign(activePlayer);
-                e.target.innerText = cell.getMarker();
-                handleOutcome();
-            }
-        });
-        boardWrapper.appendChild(newCellDiv); 
-    }) 
 
     const pruneWinnableArrays = () => { 
         const checkLessThanTwoOwners = (arr) => {
@@ -151,7 +193,11 @@ function GameController() {
     }
     
     const checkDraw = () => winnableArrays.length === 0;    
-
-
-    return {pruneWinnableArrays, getWinner, checkDraw};
+    const getActivePlayer = () => activePlayer;
+    return {handleOutcome, getActivePlayer  };
 }
+
+const startButtonNode = document.querySelector(".game-start-button");
+startButtonNode.addEventListener("click", (e) => {
+    GameInterfaceBuilder({toRemove: e.target,shouldStartGame: false,shouldMakePlayer: true});
+});
