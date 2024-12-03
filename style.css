@@ -38,13 +38,21 @@ input, button, textarea, select {
     margin-inline: auto;
 }
 
+.game-status-overlay {
+    margin: 1rem auto;
+    max-width: 1000px;
+    font-size: 2rem;
+}
+
 .board-tile {
     display: flex;
-    flex: 0 0 32%;
+    flex: 0 0 250px;
+    height: 250px;
     margin: 0 1% 1% 0;
     justify-content: center;
-    padding: 3rem;
+    align-items: center;
     border: 1px solid black;
-    background-color: bisque;
+    background-color: rgb(252, 252, 252);
     color: black;
+    font-size: 2.5rem;
 }
