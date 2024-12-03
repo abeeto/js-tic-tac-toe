@@ -146,6 +146,7 @@ const makeGameBoard = () => {
     const playerOne = Player(playerNames[0], playerMarker[0]);
     const playerTwo = Player(playerNames[1], playerMarker[1]);
 
+    document.querySelector(".wrapper").innerHTML = "";
     
     const controller = GameController([playerOne, playerTwo]);
     makeStatusOverlay(controller, {continue: true, winner: false, draw: false})
