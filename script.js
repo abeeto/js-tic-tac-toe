@@ -21,14 +21,15 @@ function Cell([...position]) {
     
     const assign = (playerObj) => {
         if (getOwner() === undefined) {
-            owner = playerObj.getName();
-            marker = playerObj.getMarker();
+            owner = playerObj?.getName();
+            marker = playerObj?.getMarker();
         }else {
             console.log(`Cell is already assigned by ${getOwner()}`);
         }
     }
+    const unassign = () => {owner = undefined; marker = undefined;}
 
-    return {getPosition, getOwner, getRowIndex, getColIndex, getMarker, assign}
+    return {getPosition, getOwner, getRowIndex, getColIndex, getMarker, assign, unassign}
 }
 
 const GameBoard = function() {
@@ -76,64 +77,17 @@ const GameBoard = function() {
         return arr;
     }();
 
+    const resetCells = () => GameBoard.getAllCells().forEach(cell => cell.unassign());
+
     const getAllBoardArrays = () => allBoardArrays;
-    return {getAllCells, getCell, getAllBoardArrays};
+    return {getAllCells, getCell, getAllBoardArrays, resetCells};
 }();
 
+const makePlayerInterface = () => {
 
-function GameInterfaceBuilder({toRemove, shouldStartGame, shouldMakePlayer}) {
-    const makeStatusOverlay = (controller, outcomeObj) => {
-        const playerDisplayDivNode = document.querySelector(".game-status-overlay");
-        const outputByOutcome = () => {
-            return (
-                outcomeObj.continue && `${controller.getActivePlayer().getName()}'s Turn` ||
-                outcomeObj.draw && `It's a draw!` ||
-                outcomeObj.winner && `${controller.getActivePlayer().getName()} wins the game! <div class="restart-btn-wrapper"><button class="restart-btn">RESTART GAME?</button></div>`
-            )
-        }
-        playerDisplayDivNode.innerHTML = `<div class="game-status-text">${outputByOutcome()}</div>`;
-        const restartGameBtn = document.querySelector(".restart-btn");
-        restartGameBtn?.addEventListener("click", ()=>{
-            playerDisplayDivNode.removeChild(document.querySelector(".game-status-text"));
-        })
-    };
-
-    const makeGameBoard = () => {
-        const formHeadNode = document.querySelector("#createPlayersForm");
-        const playersFormData = new FormData(formHeadNode);
-        const playerNames = playersFormData.getAll("name");
-        const playerMarker = playersFormData.getAll("marker");
-        const playerOne = Player(playerNames[0], playerMarker[0]);
-        const playerTwo = Player(playerNames[1], playerMarker[1]);
-
-        
-        const controller = GameController([playerOne, playerTwo]);
-        makeStatusOverlay(controller, {continue: true, winner: false, draw: false})
-        let allBoardCells = GameBoard.getAllCells();
-
-        const boardWrapper = document.querySelector(".board-wrapper");
-        allBoardCells.forEach( cell => {
-            const newCellDiv = document.createElement("div");
-            newCellDiv.classList.add("board-tile");
-            newCellDiv.innerText = cell.getMarker() ?? "";
-            newCellDiv.addEventListener("click", (e) => { 
-                if (!e.target.disabled){
-                    cell.assign(controller.getActivePlayer());
-                    e.target.innerText = cell.getMarker();
-                    const outcome = controller.handleOutcome();
-                    makeStatusOverlay(controller, outcome);
-                }
-            });
-            boardWrapper.appendChild(newCellDiv); 
-        })
-    }
-    shouldStartGame && makeGameBoard();
-    toRemove?.remove();
-
-    const makePlayerInterface = () => {
-
-        const wrapperParentNode = document.querySelector(".wrapper");
-        wrapperParentNode.innerHTML = `
+    const wrapperParentNode = document.body;
+    wrapperParentNode.innerHTML = `
+    <div class="wrapper">
         <form name="createPlayers" id="createPlayersForm"action="#">
             <fieldset>
                 <legend>Player One</legend>
@@ -151,17 +105,69 @@ function GameInterfaceBuilder({toRemove, shouldStartGame, shouldMakePlayer}) {
             </fieldset>
             <input type="submit" class="player-create-submit" value="Start!">
         </form>
-        `;
-        const submitFormBtn = document.querySelector(".player-create-submit");
-        submitFormBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            GameInterfaceBuilder({toRemove: wrapperParentNode,shouldStartGame: true,shouldMakePlayer: false});
-        });
-    }
-
-    shouldMakePlayer && makePlayerInterface();
-
+    </div>
+    <div class="game-status-overlay"></div>
+    <div class="board-wrapper"></div>
+    `;
+    const submitFormBtn = document.querySelector(".player-create-submit");
+    submitFormBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        makeGameBoard();
+    });
 }
+
+
+const makeGameBoard = () => {
+
+    const makeStatusOverlay = (controller, outcomeObj) => {
+        const playerDisplayDivNode = document.querySelector(".game-status-overlay");
+        const outputByOutcome = () => {
+            return (
+                outcomeObj.continue && `${controller.getActivePlayer().getName()}'s Turn` ||
+                outcomeObj.draw && `It's a draw! <div class="restart-btn-wrapper"><button class="restart-btn">RESTART GAME?</button></div>` ||
+                outcomeObj.winner && `${controller.getActivePlayer().getName()} wins the game! <div class="restart-btn-wrapper"><button class="restart-btn">RESTART GAME?</button></div>`
+            )
+        }
+        playerDisplayDivNode.innerHTML = `<div class="game-status-text">${outputByOutcome()}</div>`;
+        const restartGameBtn = document.querySelector(".restart-btn");
+        restartGameBtn?.addEventListener("click", ()=>{
+            playerDisplayDivNode.removeChild(document.querySelector(".game-status-text"));
+            document.querySelector(".board-wrapper").innerHTML = "";
+            makePlayerInterface();
+        })
+    };
+
+    GameBoard.resetCells();
+
+    const formHeadNode = document.querySelector("#createPlayersForm");
+    const playersFormData = new FormData(formHeadNode);
+    const playerNames = playersFormData.getAll("name");
+    const playerMarker = playersFormData.getAll("marker");
+    const playerOne = Player(playerNames[0], playerMarker[0]);
+    const playerTwo = Player(playerNames[1], playerMarker[1]);
+
+    
+    const controller = GameController([playerOne, playerTwo]);
+    makeStatusOverlay(controller, {continue: true, winner: false, draw: false})
+    let allBoardCells = GameBoard.getAllCells();
+
+    const boardWrapper = document.querySelector(".board-wrapper");
+    allBoardCells.forEach( cell => {
+        const newCellDiv = document.createElement("div");
+        newCellDiv.classList.add("board-tile");
+        newCellDiv.innerText = cell.getMarker() ?? "";
+        newCellDiv.addEventListener("click", (e) => { 
+            if (!e.target.disabled){
+                cell.assign(controller.getActivePlayer());
+                e.target.innerText = cell.getMarker();
+                const outcome = controller.handleOutcome();
+                makeStatusOverlay(controller, outcome);
+            }
+        });
+        boardWrapper.appendChild(newCellDiv); 
+    })
+}
+
 
 function GameController(players) {
     let winnableArrays = GameBoard.getAllBoardArrays();
@@ -214,12 +220,13 @@ function GameController(players) {
         return undefined;
     }
     
+    
     const checkDraw = () => winnableArrays.length === 0;    
     const getActivePlayer = () => activePlayer;
-    return {handleOutcome, getActivePlayer  };
+    return {handleOutcome, getActivePlayer};
 }
 
 const startButtonNode = document.querySelector(".game-start-button");
 startButtonNode.addEventListener("click", (e) => {
-    GameInterfaceBuilder({toRemove: e.target,shouldStartGame: false,shouldMakePlayer: true});
+    makePlayerInterface();
 });
